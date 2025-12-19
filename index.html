@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Bookshelf</title>
+    <style>
+        body {
+            background-color: #2d2d2d;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .area {
+            width: 340px;
+            height: 600px;
+            position: relative;
+            background-color: burlywood;
+            background-image: linear-gradient(skyblue, ivory, rgb(212, 192, 165));
+            margin: auto;
+            border-radius: 10px;
+        }
+
+        .book {
+            width: 20px;
+            height: 80px;
+            position: absolute;
+            background-color: #8b4513;
+            border-radius: 5px;
+        }
+
+
+        .shelf {
+            background-color: sienna;
+            width: 90%;
+            /* height: 20px; */
+            position: absolute;
+            border-radius: 3px;
+            left: 5%;
+        }
+
+        .button {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 45px;
+            height: 45px;
+            border-radius: 7px;
+            background-color: orange;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            user-select: none;
+        }
+
+        .button:hover {
+            background-color: darkorange;
+        }
+
+        .button:active {
+            background-color: lightsalmon;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="area">
+
+        <div class="button">+</div>
+    </div>
+</body>
+<script>
+
+    // function initGameData() {
+    //     const gameData = localStorage.getItem("shelf");
+
+    //     if (!gameData) {
+    //         gameData = {
+    //             shelf: [],
+    //         }
+    //     }
+
+    //     else {
+    // const saved = JSON.parse(localStorage.getItem('shelf')) //NOT DONE
+    //         shelf = JSON.parse(gameData);
+    //     }
+    // }
+    function saveShelf() {
+        saveState = shelf.map(each => (
+            {
+                'left': parseFloat(each.style.left),
+                'top': parseFloat(each.style.top),
+                'width': parseFloat(each.style.width),
+                'height': parseFloat(each.style.height),
+                'backgroundColor': each.style.backgroundColor,
+                'upright': each.upright
+            }));
+        localStorage.setItem('bookshelfData', JSON.stringify(saveState));
+        console.log(saveState);
+        // localStorage.setItem("shelf", JSON.stringify(shelf));
+    }
+
+    window.onload = function () {
+        // initGameData();
+
+    }
+
+    const gameArea = document.querySelector(".area");
+
+    class Book {
+        constructor(left = 10, top = 10, width, height, backgroundColor) {
+            this.left = left;
+            this.top = top;
+            this.width = width;
+            this.height = height;
+            this.backgroundColor = backgroundColor;
+            this.upright = true;
+        }
+        draw() {
+            const bookDiv = document.createElement("div");
+            bookDiv.classList.add("book");
+            bookDiv.style.left = `${this.left}px`;
+            bookDiv.style.top = `${this.top}px`;
+            bookDiv.style.width = `${this.width}px`;
+            bookDiv.style.height = `${this.height}px`;
+            bookDiv.style.backgroundColor = this.backgroundColor;
+            gameArea.appendChild(bookDiv);
+            shelf.push(bookDiv);
+            return bookDiv;
+        }
+    }
+
+    class Shelf {
+        constructor(yPosition) {
+            this.yPosition = yPosition;
+            this.depth = shelfDepth;
+            // shelfList.push(this);
+        }
+        draw() {
+            const shelfDiv = document.createElement("div");
+            shelfDiv.classList.add("shelf");
+            shelfDiv.style.top = `${this.yPosition}px`;
+            shelfDiv.style.height = `${this.depth}px`;
+            gameArea.appendChild(shelfDiv);
+        }
+    }
+
+    const shelfList = [];
+    const shelfDepth = 20;
+    const topMargin = 160;
+    const shelfSpacing = 150;
+    for (let y = 0; y < 3; y++) {
+        shelfList.push(topMargin + y * shelfSpacing);
+    }
+    shelfList.forEach(yPos => {
+        new Shelf(yPos).draw();
+    });
+
+    shelf = [];
+    book1 = new Book(10, 10, 30, 80, 'blue').draw();
+    book2 = new Book(50, 10, 20, 80, 'blueviolet').draw();
+    book3 = new Book(90, 10, 35, 80, 'red').draw();
+    book4 = new Book(130, 10, 70, 70, 'green').draw();
+    // shelf.forEach(book => {
+    //     book.draw();
+    // });
+    function makeABook() {
+        const width = Math.floor(Math.random() * 30) + 20;
+        const height = Math.floor(Math.random() * 60) + 60;
+        const colors = ['#8b4513', '#ff6347', '#4682b4', '#32cd32', '#ff69b4', '#ffa500'];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        new Book(10, 10, width, height, color).draw();
+    }
+
+    // let preset = [book1, book2, book3, book4];
+
+    let activeBook = null;
+    let offsetX = 0;
+    let offsetY = 0;
+    let lastTapTime = 0;
+
+    function onMouseDown(e) {
+        console.log('mouse down!')
+        if (shelf.includes(e.target)) {
+            activeBook = e.target;
+            activeBook.style.transition = ""; // Cancel any ongoing transitions
+            const rect = activeBook.getBoundingClientRect();
+            const areaRect = gameArea.getBoundingClientRect();
+
+            // Calculate offset relative to the parent container
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+
+            document.addEventListener("mousemove", onMouseMove);
+            document.addEventListener("mouseup", onMouseUp);
+        }
+        else if (e.target.classList.contains("button")) {
+            // Add a new book
+            // new Book(10, 10, 20, 80, '#8b4513').draw();
+            makeABook();
+            console.log("added a book");
+        }
+    }
+    function onDoubleClick(e) {
+        if (shelf.includes(e.target)) {
+            activeBook = e.target;
+            console.log(activeBook);
+            const computedStyle = window.getComputedStyle(activeBook);
+            const oldWidth = computedStyle.width;
+            const oldHeight = computedStyle.height;
+            activeBook.upright = !activeBook.upright;
+            activeBook.style.width = oldHeight;
+            activeBook.style.height = oldWidth;
+            checkShelfCollision();
+            activeBook = null;
+        }
+    }
+
+    function onMouseMove(e) {
+        if (activeBook) {
+            const areaRect = gameArea.getBoundingClientRect();
+            activeBook.style.left = `${e.clientX - areaRect.left - offsetX}px`;
+            activeBook.style.top = `${e.clientY - areaRect.top - offsetY}px`;
+        }
+    }
+
+    function checkShelfCollision() {
+        const activeBookRect = activeBook.getBoundingClientRect();
+        console.log("checking shelf collision");
+        console.log(activeBookRect.bottom);
+        console.log(shelfList)
+        if (activeBookRect.bottom <= shelfList[0] + shelfDepth) {
+            snapToShelf(shelfList[0]);
+            console.log("snapped to shelf 0");
+        }
+        else if (activeBookRect.bottom <= shelfList[1] + shelfDepth) {
+            snapToShelf(shelfList[1]);
+        }
+        else {
+            snapToShelf(shelfList[2]);
+        }
+    }
+    function snapToShelf(target) {
+        console.log("snapping to shelf at ", target);
+        activeBook.style.transition = "top 0.2s ease-out";
+        activeBook.style.top = `${target - activeBook.offsetHeight}px`;
+        setTimeout(() => {
+        }, 200);
+
+    }
+
+    function checkOffScreen() {
+        const areaRect = gameArea.getBoundingClientRect();
+        const bookRect = activeBook.getBoundingClientRect();
+
+        // Check left boundary
+        if (bookRect.right < areaRect.left | bookRect.left > areaRect.right | bookRect.bottom < areaRect.top | bookRect.top > areaRect.bottom) {
+            shelf.splice(shelf.indexOf(activeBook), 1);
+            gameArea.removeChild(activeBook);
+
+        }
+    }
+
+    function onMouseUp() {
+        checkOffScreen();
+        checkShelfCollision();
+        activeBook = null;
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+        // saveShelf();
+    }
+
+    // Touch events
+    function onTouchStart(e) {
+        if (shelf.includes(e.target)) {
+            e.preventDefault(); // Prevent scrolling
+
+            // Double-tap detection
+            const currentTime = new Date().getTime();
+            const tapGap = currentTime - lastTapTime;
+            if (tapGap < 300 && tapGap > 0) {
+                onDoubleClick(e); // Trigger rotation
+                return;
+            }
+            lastTapTime = currentTime;
+
+            activeBook = e.target;
+            activeBook.style.transition = ""; // Cancel any ongoing transitions
+            const rect = activeBook.getBoundingClientRect();
+            const areaRect = gameArea.getBoundingClientRect();
+
+            const touch = e.touches[0];
+            offsetX = touch.clientX - rect.left;
+            offsetY = touch.clientY - rect.top;
+
+            document.addEventListener("touchmove", onTouchMove, { passive: false });
+            document.addEventListener("touchend", onTouchEnd);
+        }
+        else if (e.target.classList.contains("button")) {
+            // Add new book
+            // makeABook();
+        }
+    }
+
+    function onTouchMove(e) {
+        if (activeBook) {
+            e.preventDefault(); // Prevent scrolling while dragging
+            const touch = e.touches[0];
+            const areaRect = gameArea.getBoundingClientRect();
+            activeBook.style.left = `${touch.clientX - areaRect.left - offsetX}px`;
+            activeBook.style.top = `${touch.clientY - areaRect.top - offsetY}px`;
+        }
+    }
+
+    function onTouchEnd() {
+        checkOffScreen()
+        checkShelfCollision();
+        activeBook = null;
+        document.removeEventListener("touchmove", onTouchMove);
+        document.removeEventListener("touchend", onTouchEnd);
+        // saveShelf();
+    }
+
+    // shelf.forEach(book => {
+    //     book.draw();
+    // });
+
+    document.addEventListener("mousedown", onMouseDown);
+    document.addEventListener("dblclick", onDoubleClick);
+    document.addEventListener("touchstart", onTouchStart, { passive: false });
+    const button = document.querySelector("button");
+</script>
+
+</html>
