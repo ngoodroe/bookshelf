@@ -77,20 +77,23 @@
 </body>
 <script>
 
-    // function initGameData() {
-    //     const gameData = localStorage.getItem("shelf");
+    function initGameData() {
+        const gameData = localStorage.getItem("bookshelfData");
+        shelf = []
 
-    //     if (!gameData) {
-    //         gameData = {
-    //             shelf: [],
-    //         }
-    //     }
+        if (!gameData) {
+            book1 = new Book(10, 10, 30, 80, 'blue').draw();
+            book2 = new Book(50, 10, 20, 80, 'blueviolet').draw();
+            book3 = new Book(90, 10, 35, 80, 'red').draw();
+            book4 = new Book(130, 10, 70, 70, 'green').draw();
+        }
 
-    //     else {
-    // const saved = JSON.parse(localStorage.getItem('shelf')) //NOT DONE
-    //         shelf = JSON.parse(gameData);
-    //     }
-    // }
+        else {
+            const saved = JSON.parse(localStorage.getItem('bookshelfData'))
+            saved.forEach(savedBook => new Book(savedBook.left, savedBook.top, savedBook.width, savedBook.height, savedBook.backgroundColor).draw())
+
+        }
+    }
     function saveShelf() {
         saveState = shelf.map(each => (
             {
@@ -107,7 +110,7 @@
     }
 
     window.onload = function () {
-        // initGameData();
+        initGameData();
 
     }
 
@@ -162,14 +165,12 @@
         new Shelf(yPos).draw();
     });
 
-    shelf = [];
-    book1 = new Book(10, 10, 30, 80, 'blue').draw();
-    book2 = new Book(50, 10, 20, 80, 'blueviolet').draw();
-    book3 = new Book(90, 10, 35, 80, 'red').draw();
-    book4 = new Book(130, 10, 70, 70, 'green').draw();
-    // shelf.forEach(book => {
-    //     book.draw();
-    // });
+    // shelf = [];
+    // book1 = new Book(10, 10, 30, 80, 'blue').draw();
+    // book2 = new Book(50, 10, 20, 80, 'blueviolet').draw();
+    // book3 = new Book(90, 10, 35, 80, 'red').draw();
+    // book4 = new Book(130, 10, 70, 70, 'green').draw();
+
     function makeABook() {
         const width = Math.floor(Math.random() * 30) + 20;
         const height = Math.floor(Math.random() * 60) + 60;
@@ -246,13 +247,14 @@
             snapToShelf(shelfList[2]);
         }
     }
+
     function snapToShelf(target) {
         console.log("snapping to shelf at ", target);
         activeBook.style.transition = "top 0.2s ease-out";
         activeBook.style.top = `${target - activeBook.offsetHeight}px`;
         setTimeout(() => {
         }, 200);
-
+        saveShelf();
     }
 
     function checkOffScreen() {
@@ -265,6 +267,7 @@
             gameArea.removeChild(activeBook);
 
         }
+        saveShelf();
     }
 
     function onMouseUp() {
